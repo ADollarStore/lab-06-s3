@@ -1,0 +1,17 @@
+# Python virtual environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Secrets: never commit credentials
+.env
+.aws/
+*credentials*
+
+# Downloaded books (staged in S3 instead)
+books/
