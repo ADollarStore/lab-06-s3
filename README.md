@@ -169,24 +169,45 @@ For example, this URL points to a public file in the course bucket: `[https://ds
 Create `stage_books.py` in `src/s3_lab/` (the package directory created by `uv init --name "s3_lab"`). The script should:
 
 - Start with the shebang `#!/usr/bin/env python3`.
-- Accept two command line arguments: the path of the book list file (`book_urls.txt`) and the name of the bucket (`public-mst3k`).
+- Accept three command line arguments, in this order: the path of the book list file (`book_urls.txt`), the path of the index page (`index.html`), and the name of the bucket (`public-mst3k`).
 - Instantiate a logger following the import statements, and use `logging` to report status in each function.
 - Give every function a docstring, and add comments in the code.
 - Wrap calls to external services (HTTP downloads and `boto3` calls) in `try`/`except` blocks that log the error. Most S3 errors are a `botocore.exceptions.ClientError`.
-- Define these functions:
-  - `parse_args`: parses the command line arguments and returns the book list file and the bucket name.
-  - `download_books`: accepts `list_file` and `dest_dir` (use `books/`). For each URL in `list_file` (one per line), download the book with `requests` and save it in `dest_dir` under the last part of the URL. For example, the line
+- Define the functions below. For each one, the signature shows its arguments, followed by what it returns and what should happen inside.
+  - `parse_args()`
+    - **Arguments:** none; it reads the command line. 
+    - **Returns:** a tuple `(list_file, index_path, bucket)` of three strings.
+    - **Inside:** use `sys.argv` to retrieve the three command line arguments. Alternatively, use  [argparse]() to define the three positional arguments, with a short help text for each.
+  - `download_books(list_file, dest_dir)`
+    - **Arguments:** `list_file`, the path of the book list (`book_urls.txt`); `dest_dir`, the folder to save the books in (use `"books"`).
+    - **Returns:** a list of the local paths of the books, e.g. `["books/pg11.txt", "books/pg12.txt", ...]`. You pass this list to `upload_files`.
+    - **Inside:** create `dest_dir` if it does not exist. Read `list_file` (one URL per line, skip blank lines). For each URL, download the book with `requests` and save it in `dest_dir` under the last part of the URL. For example,
 
-    ```text
-    https://www.gutenberg.org/cache/epub/1342/pg1342.txt
-    ```
+        ```text
+        https://www.gutenberg.org/cache/epub/1342/pg1342.txt
+        ```
 
-    is saved as `books/pg1342.txt`. Keep these names, because the links in `index.html` point to them (`<a href="pg1342.txt">`). The function returns the list of saved paths, e.g. `["books/pg11.txt", "books/pg12.txt", ...]`, which you pass to `upload_files`. If a file already exists in `dest_dir`, skip the download, so you can rerun the script without downloading everything again. Pause for about a second between downloads (`time.sleep(1)`) to avoid bombarding Project Gutenberg's servers with requests. The function should return list of local file paths. 
-  - `create_bucket`: accepts `bucket`. Creates the bucket in `us-east-1`.
-  - `make_public`: accepts `bucket`. Turns off Block Public Access for the bucket and attaches a bucket policy that allows anyone to read its objects (see the hints below).
-  - `upload_files`: accepts `bucket` and `file_paths` (list of local file paths). Uploads each file to the top level of the bucket, using the file name as the key (for example `pg1342.txt`) and `ContentType="text/plain; charset=utf-8"`, so browsers display the books as text.
-  - `upload_index`: accepts `bucket` and the path of `index.html`. Uploads it with the key `index.html` and `ContentType="text/html"`.
-  - `main`: calls the functions above in sequence. At the end, log a success or failure message and the public URL of the index page.
+        is saved as `books/pg1342.txt`. Keep these names, because the links in `index.html` point to them (`<a href="pg1342.txt">`). If the file already exists (check with `os.path.exists(path)`), skip the download, so you can rerun the script without downloading everything again. Pause for about a second between downloads (`time.sleep(1)`) to avoid bombarding Project Gutenberg's servers with requests. If a download fails, log the error and continue with the next book. **Hint:** call `response.raise_for_status()` after `requests.get()`, so that HTTP errors like 404 raise an exception too, and wrap the download in `try`/`except requests.RequestException as e:`, which catches both network and HTTP errors.
+  - `create_bucket(bucket)`
+    - **Arguments:** `bucket`, the bucket name.
+    - **Returns:** `True` if the bucket exists afterwards, `False` otherwise.
+    - **Inside:** create the bucket in `us-east-1`. If S3 reports that you already own the bucket (from a previous run), treat that as success.
+  - `make_public(bucket)`
+    - **Arguments:** `bucket`, the bucket name.
+    - **Returns:** `True` on success, `False` otherwise.
+    - **Inside:** turn off Block Public Access for the bucket, then attach a bucket policy that allows anyone to read its objects (see the hints below).
+  - `upload_files(bucket, file_paths)`
+    - **Arguments:** `bucket`, the bucket name; `file_paths`, the list returned by `download_books`.
+    - **Returns:** the number of files uploaded successfully.
+    - **Inside:** loop over `file_paths` and upload each file to the top level of the bucket, using the file name as the key (e.g. `pg1342.txt`, not `books/pg1342.txt`) and `ContentType="text/plain; charset=utf-8"`, so browsers display the books as text. If an upload fails, log the error and continue with the next file.
+  - `upload_index(bucket, index_path)`
+    - **Arguments:** `bucket`, the bucket name; `index_path`, the path of the index page from the command line.
+    - **Returns:** `True` on success, `False` otherwise.
+    - **Inside:** upload the file with the key `index.html` and `ContentType="text/html"`, so browsers display it as a web page.
+  - `main()`
+    - **Arguments:** none.
+    - **Returns:** nothing.
+    - **Inside:** call the functions above in order. Stop with `sys.exit(1)` if no books were downloaded or the bucket could not be created or made public. At the end, log a success or failure message and the public URL of the index page, `https://BUCKET.s3.amazonaws.com/index.html`.
 - Call `main()` from an `if __name__ == "__main__":` block.
 
 **Hints:**
@@ -206,7 +227,7 @@ Create `stage_books.py` in `src/s3_lab/` (the package directory created by `uv i
     )
     ```
 
-- A bucket policy is a JSON document. Build it as a Python dictionary and pass it as a string with `json.dumps()` to `s3.put_bucket_policy(Bucket=bucket, Policy=...)`:
+- A bucket policy is a JSON document like this: 
 
     ```json
     {
@@ -221,7 +242,10 @@ Create `stage_books.py` in `src/s3_lab/` (the package directory created by `uv i
       ]
     }
     ```
-
+    Build the policy as a Python dictionary named `policy`; make sure to replace `public-mst3k` in the policy example with your `bucket` value. Then pass `policy` dictionary as a string with `json.dumps(policy)` to `s3.put_bucket_policy()`: 
+    ```python
+    s3.put_bucket_policy(Bucket=bucket, Policy=json.dumps(policy))
+    ```
     The policy must be attached **after** Block Public Access is turned off, otherwise S3 rejects it with an `AccessDenied` error.
 
 ### Step 2: Run the script
@@ -229,10 +253,10 @@ Create `stage_books.py` in `src/s3_lab/` (the package directory created by `uv i
 Run the script from the top-level directory of your clone, replacing `mst3k` with your computing ID:
 
 ```bash
-uv run python src/s3_lab/stage_books.py book_urls.txt public-mst3k
+uv run python src/s3_lab/stage_books.py book_urls.txt index.html public-mst3k
 ```
 
-Downloading 100 books takes a few minutes. Watch the log output for errors. If the script fails partway, fix the problem and rerun it: books that were already downloaded are skipped. If `create_bucket` reports that you already own the bucket from a previous run, handle that case so the script continues with the upload.
+Downloading 100 books takes a few minutes. Watch the log output for errors. If the script fails partway, fix the problem and rerun it: books that were already downloaded are skipped.
 
 ### Step 3: Verify
 
