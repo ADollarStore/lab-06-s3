@@ -180,7 +180,7 @@ Each class script performs a single step. Your script combines these steps into 
     s3 = boto3.client("s3", region_name="us-east-1")
     ```
 
-- Wrap calls to external services (HTTP downloads and `boto3` calls) in `try`/`except` blocks that log the error.
+- Wrap calls to external services (HTTP downloads with `requests` and `boto3` calls to AWS) in `try`/`except` blocks that log the error.
 - Define the functions below. For each one, the signature shows its arguments, followed by what it returns and what should happen inside.
   - `parse_args()`
     - **Arguments:** none; it reads the command line.
@@ -189,7 +189,7 @@ Each class script performs a single step. Your script combines these steps into 
   - `download_books(list_file, dest_dir)`
     - **Arguments:** `list_file`, the path of the book list (`book_urls.txt`); `dest_dir`, the folder to save the books in (use `"books"`).
     - **Returns:** a list of the local paths of the books, e.g. `["books/pg11.txt", "books/pg12.txt", ...]`. You pass this list to `upload_files`.
-    - **Inside:** create `dest_dir` if it does not exist. Read `list_file` (one URL per line, skip blank lines). For each URL, download the book with `requests` and save it in `dest_dir` under the last part of the URL. For example,
+    - **Inside:** create `dest_dir` with `os.makedirs(dest_dir, exist_ok=True)` (like `mkdir -p`). Read `list_file` (one URL per line, skip blank lines). For each URL, download the book with `requests` and save it in `dest_dir` under the last part of the URL. For example,
 
         ```text
         https://www.gutenberg.org/cache/epub/1342/pg1342.txt
