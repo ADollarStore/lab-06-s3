@@ -15,6 +15,3 @@ __pycache__/
 
 # Downloaded books (staged in S3 instead)
 books/
-
-# Instructor solution: never commit to this public repo
-solution/
