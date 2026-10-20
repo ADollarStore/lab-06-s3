@@ -1,8 +1,4 @@
 #!/bin/bash
-# Share one Project Gutenberg book from a private S3 bucket with a presigned URL.
-#
-# Usage: ./share_book.sh <book_url> <bucket_name> <expiration_seconds>
-# Example: ./share_book.sh https://www.gutenberg.org/cache/epub/2600/pg2600.txt secret-mst3k 604800
 set -euo pipefail
 
 # Validate positional arguments
