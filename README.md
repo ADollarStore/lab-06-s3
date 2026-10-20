@@ -1,3 +1,10 @@
+## My S3 buckets
+
+- **Public book collection:** [https://public-wqx6ap.s3.amazonaws.com/index.html](https://public-wqx6ap.s3.amazonaws.com/index.html)
+- **Private book (presigned, 604800 s):** [presigned link](https://secret-wqx6ap.s3.amazonaws.com/pg7370.txt?AWSAccessKeyId=ASIAQVHNUAEXS6KCMGUO&Signature=idoUY69H336QmBqI7ieD%2BBU0nSA%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEHEaCXVzLXdlc3QtMiJHMEUCIHV%2FduwYh1DDgwdJLapB8b5pl0C2j5R8L73WLkLaMUOGAiEAn7euxcBIH18oW4SWYo%2BmSwZHelZv9bUu%2BHvKvsJkw1gqrQIIOhAAGgwwNDU1OTU0OTI2NTUiDIxIS6qL86RTWZSYXyqKAkKhihjSS2mRdNzlI876wxnmA%2BkF8m08rGSe9NzEsD6cvv41V3orNE7u2%2FMLr2Oq3Lc2Ii8XEZ0C%2FIPx9VHqFHTnJn%2FwzECYo9n9dIQEMeFM67HC8Z2usWw7VAfe7XBUPWVzjUuOEvL17Ln8vhdzXuhaWddrl8%2F8gCo36xuikSy4yP%2BtSFEfPbs4NelaYsM7PwQMt3i8uDYF45Oj8S73aM5yxw0YBmwnY8WVQQG6yddybQTHoPm4eAkMLM7SmtjkaIr%2FyJKEuWtORJwu8HGSoSG%2B2ItTUxXpkOr0vNJVobWT2QXjOzdUwyxlwd2C1dziNTNFrGY2S25k%2Fv0rN3jV7iNCiTw4LaT5mc8TMN312tYGOp0BZh4E%2Bcf%2BEdbBd99sYb1gSRHyFqNCCn2MgMi9KRJiXX9qtZdtTTBjeWrqqV7WwyAYR1cIxN7DnGxoC4fDoW%2F4%2Bc%2F%2FEiwBj2IOmOhXFEoOU3OYpoJTV%2FClhv8x%2B%2B2EWA%2BA0%2B7S3E7k90DKsH5TZH1Lk4OP39CWPzAOxON5SUIygyGS2URQyiL0q73WNh1W3AmG%2FMvyYQQGQ8gWXrcC9w%3D%3D&Expires=1793067622)
+
+I would use a public bucket for data that anyone should be able to read indefinitely. I would use a presigned URL when the data must stay private but one specific person needs temporary access to a single object without an AWS account.
+
 # Lab 06: Working with S3 Storage
 
 The goal of this lab is to get you comfortable with **Amazon S3** object storage, building on what you have learned about the command line, AWS accounts, and scripting. You will stage a collection of 100 books from [Project Gutenberg](https://www.gutenberg.org/) in a **public** bucket that anyone can browse in a web browser, and share a single book from a **private** bucket with a time-limited presigned URL.
